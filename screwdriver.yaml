@@ -1,0 +1,60 @@
+shared:
+  image: golang
+  environment:
+    GOPATH: /sd/workspace
+    GO111MODULE: on
+
+jobs:
+  meta-set:
+    requires: [~pr, ~commit]
+    steps:
+      - install-jq: |
+          apt update
+          apt install -y jq
+      - meta-sets: |
+          meta set meta.nojson.str_with_spaces "a simple string"
+          meta set meta.nojson.str_no_spaces foo
+          meta set meta.nojson.json_str '"foo"'
+          meta set meta.nojson.json_object '{"str": "bar", "array": [1,2,3], "object": {"foo": "bar"}}'
+          meta set meta.nojson.json_array '[1,2,3,"a","b","c"]'
+
+          meta set -j meta.json.json_str '"foo"'
+          meta set -j meta.json.json_object '{"str": "bar", "array": [1,2,3], "object": {"foo": "bar"}}'
+          meta set -j meta.json.json_array '[1,2,3,"a","b","c"]'
+
+      - meta-gets: |
+          function assert() {
+              local -r EXPECTED="${1:?EXPECTED missing}"
+              local -r ACTUAL="${2:?ACTUAL missing}"
+              local -r COMMENT="$3"
+              if [[ "$EXPECTED" != "$ACTUAL" ]]; then
+                  printf 'expected "%q"; got "%q" %s\n' "$EXPECTED" "$ACTUAL" "$COMMENT"| tee -a results.txt
+              fi
+          }
+
+          function assert_get() {
+              local -r KEY="${1:?KEY missing}"
+              local -r EXPECTED="${2:?EXPECTED missing}"
+              local -r COMMENT="$3"
+              assert "$EXPECTED" "$(meta get "$KEY")" "$KEY" "$COMMENT"
+          }
+
+          function assert_get_json() {
+              local -r KEY="${1:?KEY missing}"
+              local -r EXPECTED="${2:?EXPECTED missing}"
+              local -r COMMENT="$3"
+              local -r NORMALIZED_EXPECTED="$(jq -S -c <<<"$EXPECTED")"
+              local -r ACTUAL="$(meta get -j "$KEY")"
+              local -r NORMALIZED_ACTUAL="$(jq -S -c <<<"$ACTUAL")"
+              assert "$NORMALIZED_EXPECTED" "$NORMALIZED_ACTUAL" "$KEY" "$COMMENT"
+          }
+
+          assert_get meta.nojson.str_with_spaces "a simple string"
+          assert_get meta.nojson.str_no_spaces foo
+          assert_get meta.nojson.json_str '"foo"'
+          assert_get meta.nojson.json_object '{"str": "bar", "array": [1,2,3], "object": {"foo": "bar"}}'
+          assert_get meta.nojson.json_array '[1,2,3,"a","b","c"]'
+
+          assert_get_json meta.json.json_str '"foo"'
+          assert_get_json meta.json.json_object '{"str": "bar", "array": [1,2,3], "object": {"foo": "bar"}}'
+          assert_get_json meta.json.json_array '[1,2,3,"a","b","c"]'
