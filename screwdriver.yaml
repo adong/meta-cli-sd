@@ -3,6 +3,7 @@ shared:
   environment:
     GOPATH: /sd/workspace
     GO111MODULE: on
+    USER_SHELL_BIN: /bin/bash
 
 jobs:
   meta-set:
