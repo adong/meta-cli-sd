@@ -9,8 +9,6 @@ jobs:
   meta-set:
     requires: [~pr, ~commit]
     steps:
-      - install-latest-meta: |
-          go get -t github.com/screwdriver-cd/meta-cli/releases/latest/...
       - install-jq: |
           curl -sfLO https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
           chmod a+x jq-linux64
