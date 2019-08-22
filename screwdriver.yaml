@@ -65,3 +65,5 @@ jobs:
               cat >&2 results.txt
               exit 1
           fi
+      - teardown-copy-meta: |
+          cp "$SD_META_PATH" "$SD_ARTIFACTS_DIR/" ||:
