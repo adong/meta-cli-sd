@@ -58,3 +58,8 @@ jobs:
           assert_get_json meta.json.json_str '"foo"'
           assert_get_json meta.json.json_object '{"str": "bar", "array": [1,2,3], "object": {"foo": "bar"}}'
           assert_get_json meta.json.json_array '[1,2,3,"a","b","c"]'
+      - check-results: |
+          if [[ -f results.txt ]]; then
+              cat >&2 results.txt
+              exit 1
+          fi
